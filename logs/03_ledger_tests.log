@@ -1,0 +1,16 @@
+=== LEDGER UNIT TESTS 2026-08-26T12:41:24Z ===
+
+  PASS  test_brief_blip_is_not_an_incident
+  PASS  test_compliant_detections_are_ignored
+  PASS  test_crop_respects_row_column_indexing
+  PASS  test_csv_and_summary
+  PASS  test_long_gap_splits_into_two_incidents
+  PASS  test_min_conf_filters_weak_detections
+  PASS  test_open_incident_is_flushed_at_end_of_stream
+  PASS  test_peak_confidence_is_retained
+  PASS  test_single_frame_dropout_does_not_split_incident
+  PASS  test_sustained_violation_opens_one_incident
+  PASS  test_triage_order_is_by_severity
+  PASS  test_two_workers_tracked_independently
+
+12/12 passed
