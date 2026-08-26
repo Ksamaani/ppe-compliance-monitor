@@ -1,0 +1,54 @@
+=== ASSET FETCH 2026-08-26T12:32:19+00:00 ===
+
+[search] 'construction workers hard hats site' -> want 3
+  OK  site_01.jpg <- File:Construction worker CT.jpg (433,274 bytes)
+      licence: CC BY-SA 3.0 | author: HelenOnline
+      source : https://commons.wikimedia.org/wiki/File:Construction_worker_CT.jpg
+  OK  site_02.jpg <- File:Construction worker - 8217.jpg (624,330 bytes)
+      licence: CC BY-SA 3.0 | author: Jorge Royan
+      source : https://commons.wikimedia.org/wiki/File:Construction_worker_-_8217.jpg
+  OK  site_03.jpg <- File:HK SYP 西環 Sai Ying Pun 第三街 Third Street construction site January 2021 SS2 02.jpg (979,640 bytes)
+      licence: CC BY-SA 4.0 | author: Jhi Gramapz
+      source : https://commons.wikimedia.org/wiki/File:HK_SYP_%E8%A5%BF%E7%92%B0_Sai_Ying_Pun_%E7%AC%AC%E4%B8%89%E8%A1%97_Third_Street_construction_site_January_2021_SS2_02.jpg
+
+[search] 'building construction site crane workers' -> want 2
+  OK  site_04.jpg <- File:Building construction crane Moira Close Broadwater Farm Haringey 2025 09.jpg (1,425,826 bytes)
+      licence: CC BY-SA 4.0 | author: Acabashi
+      source : https://commons.wikimedia.org/wiki/File:Building_construction_crane_Moira_Close_Broadwater_Farm_Haringey_2025_09.jpg
+  OK  site_05.jpg <- File:Building construction crane Moira Close Broadwater Farm Haringey 2025 08.jpg (650,936 bytes)
+      licence: CC BY-SA 4.0 | author: Acabashi
+      source : https://commons.wikimedia.org/wiki/File:Building_construction_crane_Moira_Close_Broadwater_Farm_Haringey_2025_08.jpg
+
+[search] 'workers pouring concrete boom pump' -> want 1
+  OK  site_06.jpg <- File:Workers pouring concrete from a boom pump.jpg (699,170 bytes)
+      licence: CC BY-SA 3.0 | author: Grendelkhan
+      source : https://commons.wikimedia.org/wiki/File:Workers_pouring_concrete_from_a_boom_pump.jpg
+
+[search] 'FEMA roofer working on a home in Oklahoma' -> want 1
+  OK  site_07.jpg <- File:FEMA - 44633 - Roofer working on a home in Oklahoma.jpg (863,561 bytes)
+      licence: Public domain | author: Patsy Lynch
+      source : https://commons.wikimedia.org/wiki/File:FEMA_-_44633_-_Roofer_working_on_a_home_in_Oklahoma.jpg
+
+[search] 'Seabee welds structure construction' -> want 1
+  OK  site_08.jpg <- File:Flickr - Official U.S. Navy Imagery - Seabee welds structure for new post office..jpg (455,702 bytes)
+      licence: Public domain | author: Official Navy Page from United States of America UT2 Vuong Ta/U.S. Navy
+      source : https://commons.wikimedia.org/wiki/File:Flickr_-_Official_U.S._Navy_Imagery_-_Seabee_welds_structure_for_new_post_office..jpg
+
+[video]
+  title  : File:Building construction Moira Close Broadwater Farm Haringey 2025 16.webm
+  author : Acabashi | licence: CC BY-SA 4.0
+  source : https://commons.wikimedia.org/wiki/File:Building_construction_Moira_Close_Broadwater_Farm_Haringey_2025_16.webm
+  window : 236-270 s -> 1280px wide @ 15 fps
+  why    : static zoomed shot of a formwork deck; 2-4 workers walk across the frame carrying materials, hard hats of several colours clearly visible, and the camera zoom-out at ~272 s is excluded.
+  REUSED a previously-cut copy of this exact window from ..\construction-helmet-detection\data\videos\site_clip.mp4 (9,459,979 bytes) instead of re-downloading the 169 MB source. Drop --reuse-clip to reproduce it from scratch.
+
+Images on disk : 8
+  site_01.jpg         433,274 bytes
+  site_02.jpg         624,330 bytes
+  site_03.jpg         979,640 bytes
+  site_04.jpg       1,425,826 bytes
+  site_05.jpg         650,936 bytes
+  site_06.jpg         699,170 bytes
+  site_07.jpg         863,561 bytes
+  site_08.jpg         455,702 bytes
+Video on disk  : yes
