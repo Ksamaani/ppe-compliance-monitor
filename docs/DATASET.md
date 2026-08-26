@@ -15,7 +15,7 @@ exist to demonstrate the pipeline on imagery the model has never seen.
 | **Upstream origin** | Roboflow Universe — *Construction Site Safety* project |
 | **Licence** | CC BY 4.0 |
 | **Annotation format** | YOLO (`class cx cy w h`, normalised 0–1) |
-| **Size** | 2,641 images — train 2,445 · valid 114 · test 82 |
+| **Size** | 2,801 images — train 2,605 · valid 114 · test 82 (measured, version 3) |
 | **Access** | Anonymous, no API key: `kagglehub.dataset_download("snehilsanyal/construction-site-safety-image-dataset-roboflow")` |
 
 ### Classes (10)
@@ -27,6 +27,30 @@ exist to demonstrate the pipeline on imagery the model has never seen.
 | 2 | `NO-Hardhat` | 7 | `Safety Vest` |
 | 3 | `NO-Mask` | 8 | `machinery` |
 | 4 | `NO-Safety Vest` | 9 | `vehicle` |
+
+### Measured class distribution
+
+Counted directly from the label files by `ppe_monitor.dataset.describe()` rather than taken from
+the dataset card — 38,352 annotated instances in total.
+
+| class | train | valid | test |
+|---|---:|---:|---:|
+| `Person` | 9,532 | 166 | 174 |
+| `machinery` | 5,247 | 55 | 44 |
+| `NO-Safety Vest` | 3,962 | 106 | 90 |
+| `Safety Cone` | 3,366 | 44 | 92 |
+| `Hardhat` | 3,145 | 79 | 110 |
+| `NO-Mask` | 3,097 | 74 | 79 |
+| `Safety Vest` | 3,033 | 41 | 61 |
+| `NO-Hardhat` | 2,317 | 69 | 41 |
+| `Mask` | 1,651 | 21 | 28 |
+| `vehicle` | 1,545 | 42 | 41 |
+| **total** | **36,895** | **697** | **760** |
+
+`NO-Hardhat` — the class this project cares about most — has 2,317 training instances, which is
+enough to learn, but only **41 test instances**. Every point of recall on that class is worth
+~2.4%, so the test-split figures for it carry real uncertainty. That is stated here so the
+evaluation numbers are not over-read.
 
 ### Why the paired classes matter
 
@@ -48,8 +72,9 @@ Recorded up front so the evaluation is read in context:
 - **Small held-out splits.** 114 validation and 82 test images are enough for model selection and
   honest reporting, but too small for hyperparameter tuning — per-class metrics on rare classes
   swing on a handful of instances.
-- **Class imbalance.** `Hardhat`, `Person` and `Safety Vest` dominate. `Mask`, `NO-Mask`,
-  `machinery` and `vehicle` are comparatively rare and will score noticeably lower.
+- **Class imbalance.** `Person` alone is a quarter of all training instances, and there are six
+  times as many `Person` boxes as `Mask` boxes. Rare classes will score noticeably lower, and
+  that is a property of the data rather than of the training run.
 - **Domain skew.** Images skew towards daytime outdoor sites; night, rain and indoor scenes are
   under-represented, so real deployment would need site-specific data collection.
 
