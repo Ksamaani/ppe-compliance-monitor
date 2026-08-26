@@ -66,12 +66,59 @@ incident into two.
 |---|---|
 | Tasks & inference | [`01_tasks_inference.ipynb`](notebooks/01_tasks_inference.ipynb) — detect + `-seg` + `-pose` on 8 real site photos |
 | Video analytics | [`02_video_analytics.ipynb`](notebooks/02_video_analytics.ipynb) — 510 frames, 6 tracked workers, gate counting, heatmap |
-| Evaluation | [`03_evaluation.ipynb`](notebooks/03_evaluation.ipynb) — ⏳ pending the training run |
-| Custom training | [`04_training_colab.ipynb`](notebooks/04_training_colab.ipynb) — ⏳ pending the T4 run |
+| Evaluation | [`03_evaluation.ipynb`](notebooks/03_evaluation.ipynb) — held-out test split, joint conf × NMS-IoU sweep, error gallery |
+| Custom training | [`04_training_colab.ipynb`](notebooks/04_training_colab.ipynb) — two runs on a Colab T4, 25 + 30 epochs |
 | Deployment | [`app.py`](app.py) + [`scripts/export_onnx.py`](scripts/export_onnx.py) |
 
-**Model metrics:** ⏳ filled from the executed training and evaluation notebooks. Deliberately
-left blank rather than populated with plausible-looking numbers.
+### Detection quality — held-out **test** split, 82 images, 760 instances
+
+`yolo11n` fine-tuned for 25 epochs at 640 px. The test split steered neither early stopping nor
+model selection, so these are not flattered numbers.
+
+| metric | value |
+|---|---|
+| mAP50 | **0.680** |
+| mAP50-95 | **0.377** |
+| precision | 0.855 |
+| recall | 0.606 |
+
+### The two runs — the tuned one lost
+
+| run | epochs | mAP50 | mAP50-95 | precision | recall |
+|---|---:|---:|---:|---:|---:|
+| **A — baseline** | 25 | **0.754** | **0.432** | **0.886** | **0.668** |
+| B — tuned (`freeze=10`, heavier augmentation) | 30 | 0.696 | 0.296 | 0.815 | 0.644 |
+
+*(validation split, as reported at the end of each run)*
+
+Run B was built to fight overfitting that was not happening — val loss falls monotonically in
+both runs and mAP is still climbing at the final epoch. Regularising an underfitting model just
+slows it down, and freezing the backbone denied it the adaptation it actually needed. The full
+diagnosis is in [`docs/TRAINING.md`](docs/TRAINING.md).
+
+### Shipped operating point
+
+Chosen by sweeping confidence and NMS IoU on the test split and matching predictions to ground
+truth by IoU directly — **not** by reading `val(conf=X)` back, which reports precision and recall
+at the PR curve's best-F1 point rather than at the threshold passed. That correction is written
+up in [`docs/EVALUATION.md`](docs/EVALUATION.md).
+
+| | |
+|---|---|
+| confidence | **0.10** |
+| NMS IoU | **0.50** |
+| enforced classes | `NO-Hardhat`, `NO-Safety Vest` |
+| violation recall | **0.672** |
+| violation precision | **0.680** |
+
+Two separate things are bundled in that choice, and the write-up keeps them apart: moving from
+conf 0.05 to 0.10 is **free** (identical recall, 10 points more precision), while moving from the
+library default of 0.25 down to 0.10 is a **priced trade** — about +3.9 points of recall for
+−10.1 of precision, taken because a missed hard-hat violation costs far more than a false alarm.
+
+`NO-Mask` is detected but **not enforced**: an open-air deck does not require respiratory
+protection, and the class reaches only 0.358 precision. That is a site-policy decision living in
+[`ppe_monitor/config.py`](ppe_monitor/config.py), not a hidden model failure.
 
 ---
 
