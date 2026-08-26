@@ -8,6 +8,7 @@ cv2.VideoWriter, with periodic stills saved as evidence.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -77,7 +78,7 @@ def run_tracking(
     source: Path | str,
     model,
     output_video: Path | str | None = None,
-    ledger: ViolationLedger | None = None,
+    ledger: ViolationLedger | Iterable[ViolationLedger] | None = None,
     still_dir: Path | str | None = None,
     still_every: int = 60,
     still_prefix: str = "track",
@@ -90,8 +91,19 @@ def run_tracking(
 
     Uses model.track(persist=True) frame by frame so that track IDs stay stable
     while we keep full control of the OpenCV loop (read -> process -> write).
+
+    `ledger` accepts one ledger or several. Several is the useful case: the same
+    tracked stream can be scored under different enforcement policies without
+    running the model twice.
     """
     source = Path(source)
+    ledgers: list[ViolationLedger]
+    if ledger is None:
+        ledgers = []
+    elif isinstance(ledger, ViolationLedger):
+        ledgers = [ledger]
+    else:
+        ledgers = list(ledger)
     info = probe(source)
     cap = cv2.VideoCapture(str(source))
     writer = make_writer(output_video, info) if output_video else None
@@ -119,8 +131,8 @@ def run_tracking(
             if boxes is not None and boxes.id is not None:
                 track_ids.update(boxes.id.int().tolist())
 
-            if ledger is not None:
-                ledger.update(frame_idx, result, frame)
+            for led in ledgers:
+                led.update(frame_idx, result, frame)
 
             annotated = _plot_im(result, frame)
             if writer is not None:
@@ -138,8 +150,8 @@ def run_tracking(
         if writer is not None:
             writer.release()
 
-    if ledger is not None:
-        ledger.close_all(frame_idx)
+    for led in ledgers:
+        led.close_all(frame_idx)
 
     return {
         "info": info,
