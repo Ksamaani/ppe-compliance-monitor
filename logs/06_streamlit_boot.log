@@ -1,0 +1,37 @@
+=== STREAMLIT BOOT CHECK 2026-08-26T12:56:33Z ===
+
+$ streamlit run app.py --server.port 8611 --server.headless true
+
+2026-08-26 15:56:30.643 Uvicorn server started on :::8611
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8611
+  Network URL: http://192.168.68.123:8611
+  External URL: http://82.167.13.251:8611
+
+
+--- HTTP probe ---
+GET / -> HTTP 200, 11141 bytes, 0.005856s
+title: <title>Streamlit</title>
+GET /_stcore/health -> HTTP 200
+
+--- rendered-UI verification (headless browser) ---
+sidebar mounted : yes
+sidebar contents: Settings | Model | Confidence threshold 0.25 (0.05-0.95) | NMS IoU 0.50 (0.10-0.90)
+                  | 'No custom weights found in models/. Using COCO fallback.'
+                  | SDAIA Academy attribution, cohort 24-28 August 2026
+main contents   : title, caption, Image / Video tabs, file uploader
+stException elements in DOM : 0
+
+NOTE: initial_sidebar_state='expanded' is required. Streamlit's default 'auto'
+      omits the sidebar from the DOM entirely on load, which hid the model
+      picker and threshold - the two controls that change the verdict.
+
+--- app helper exercised headlessly ---
+app.detections_frame() on site_07.jpg:
+ class  violation  severity  confidence  x1  y1  x2  y2
+person      False         0       0.735 598 258 750 471
+
+columns: ['class', 'violation', 'severity', 'confidence', 'x1', 'y1', 'x2', 'y2']
+violation rows: 0 (expected 0 on COCO weights)
