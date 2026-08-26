@@ -220,6 +220,43 @@ threshold surfaces more of the failure modes, and the causes below are what thos
   out-of-distribution, and per-site calibration would be needed before trusting these numbers on
   a real deployment.
 
+## The metrics above measure the detector, not the system
+
+Every number on this page comes from single-image detection. The deployed system is a *video*
+pipeline, and between the detector and the violation ledger sits the tracker — which turns out to
+be the binding constraint on two of the three violation classes.
+
+Measured on the 34-second site clip, at the shipped `conf=0.10`:
+
+| class | detections found by `predict` | boxes surfaced by `track` | longest streak on one track ID |
+|---|---:|---:|---:|
+| `NO-Safety Vest` | 43 | 5 track IDs | **25 frames** |
+| `NO-Hardhat` | 11 | 1 track ID | 1 frame |
+| `NO-Mask` | 125 | 1 track ID | 2 frames |
+
+*(`predict` counts are over every 10th frame; `track` counts are over all 510.)*
+
+Measured by [`scripts/probe_tracker_gap.py`](../scripts/probe_tracker_gap.py); full output in
+[`logs/11_tracker_gap.log`](../logs/11_tracker_gap.log). Only `NO-Safety Vest` reaches the
+5-frame debounce, on 2 of its 5 track IDs. Those two tracks are the 2 workers in the ledger; one
+of them violates, clears for the full 15-frame close window, then violates again, which is why 2
+tracks produce 3 incidents.
+
+`model.track()` emits only **confirmed** tracks. A detection that never associates with the same
+object across consecutive frames is dropped before the ledger can see it, so it can never open an
+incident regardless of how confident the detector was. `NO-Mask` is found in most frames and
+still produces nothing: the boxes are small, sit on faces, and fail to associate.
+
+The consequence is concrete: **the ledger's recall is bounded by the tracker, not only by the
+detector.** A model improvement that raises `NO-Hardhat` detection recall would not, on its own,
+produce more logged incidents on footage like this. The lever that would is tracker
+configuration — association thresholds, `track_high_thresh`, or tracking the `Person` box and
+attaching the violation to it rather than tracking the small violation box directly.
+
+That last option is the change worth making next, and it is not visible from any number in the
+sections above. It is recorded here because a page of detection metrics quietly implies the
+detector is the thing to improve, and on this footage it is not.
+
 ## Known failure modes
 
 The notebook shows the images; the recurring causes on this dataset are:

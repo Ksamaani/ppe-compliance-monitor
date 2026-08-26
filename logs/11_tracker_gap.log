@@ -1,0 +1,49 @@
+
+========================================================================
+1. What the DETECTOR finds
+========================================================================
+clip: site_clip.mp4, 510 frames
+
+sampled 51 frames (every 10th) at conf=0.1, iou=0.5
+
+class              detections  peak conf
+----------------------------------------
+Person                    219      0.926
+Hardhat                   156      0.932
+Safety Vest               140      0.973
+NO-Mask                   125      0.832  <- violation, not enforced
+NO-Safety Vest             43      0.775  <- ENFORCED violation
+vehicle                    27      0.248
+machinery                  21      0.887
+NO-Hardhat                 11      0.514  <- ENFORCED violation
+Mask                        4      0.247
+
+sampled frames containing any violation class : 48/51
+
+========================================================================
+2. What survives into CONFIRMED TRACKS
+========================================================================
+tracked 510 frames at conf=0.1; the ledger opens an incident
+after 5 consecutive violating frames on one track ID
+
+NO-Hardhat         1 distinct track IDs   longest streak   1 frames   0 reached the 5-frame threshold
+                 top streaks: [1]
+
+NO-Mask            1 distinct track IDs   longest streak   2 frames   0 reached the 5-frame threshold
+                 top streaks: [2]
+
+NO-Safety Vest     5 distinct track IDs   longest streak  25 frames   2 reached the 5-frame threshold
+                 top streaks: [25, 9, 4, 1, 1]
+
+
+========================================================================
+READING
+========================================================================
+Detections that never associate into a stable track ID cannot open an
+incident, however confident the detector was. Where a class is detected
+often but holds no track, the ledger's recall is bounded by the TRACKER,
+not by the detector - and a model improvement alone would not produce
+more logged incidents on footage like this.
+
+The lever that would: track the large, stable Person box and attach the
+violation to it, rather than tracking the small violation box directly.
