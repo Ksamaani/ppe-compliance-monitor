@@ -43,6 +43,28 @@ Small confidence drift between the two is expected — ONNX Runtime executes fp3
 different order, so results agree to a few decimal places rather than bit-exactly. A change in
 the *number* or *class* of detections would indicate a real export problem.
 
+### Result
+
+Run against the trained weights — full output in [`logs/10_onnx_export.log`](../logs/10_onnx_export.log):
+
+| | |
+|---|---|
+| exported | `models/best.onnx`, opset 18, 10.57 MB (PyTorch: 5.47 MB) |
+| runtime | ONNX Runtime 1.29.0, `CPUExecutionProvider` |
+| detections | **7 on both**, identical class sequence |
+| max confidence drift | **0.0120** |
+
+The size roughly doubling is expected: the `.pt` file stores fp16 weights, while the ONNX graph is
+fp32 with the ops written out explicitly.
+
+Annotated ONNX output: `outputs/05_onnx_roundtrip.jpg`.
+
+> The per-call timings the script prints are **not** a benchmark. The first ONNX call carries
+> session initialisation and graph optimisation, so it reads far slower than PyTorch on a single
+> image. Comparing steady-state throughput would need a warm-up pass and repeated timed runs,
+> which is deliberately out of scope here — the claim being made is *correctness of the export*,
+> not a speedup.
+
 ---
 
 ## The Streamlit app

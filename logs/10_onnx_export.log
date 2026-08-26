@@ -1,0 +1,61 @@
+
+========================================================================
+1. Load the trained model
+========================================================================
+weights : C:\Users\ksama\OneDrive\المستندات\projects\OpenCode\ppe-compliance-monitor\models\best.pt
+task    : detect
+classes : ['Hardhat', 'Mask', 'NO-Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', 'Safety Cone', 'Safety Vest', 'machinery', 'vehicle']
+
+========================================================================
+2. model.export(format='onnx')
+========================================================================
+Ultralytics 8.4.129  Python-3.11.15 torch-2.13.0+cpu CPU (Intel Core i7-10510U 1.80GHz)
+YOLO11n summary (fused): 101 layers, 2,584,102 parameters, 0 gradients, 6.4 GFLOPs
+
+[34m[1mPyTorch:[0m starting from 'C:\Users\ksama\OneDrive\\projects\OpenCode\ppe-compliance-monitor\models\best.pt' with input shape (1, 3, 640, 640) BCHW and output shape(s) (1, 14, 8400) (5.2 MB)
+
+[34m[1mONNX:[0m starting export with onnx 1.22.0 opset 18...
+[34m[1mONNX:[0m export success  3.0s, saved as 'C:\Users\ksama\OneDrive\\projects\OpenCode\ppe-compliance-monitor\models\best.onnx' (10.1 MB)
+
+Export complete (4.2s)
+Results saved to [1mC:\Users\ksama\OneDrive\\projects\OpenCode\ppe-compliance-monitor\models\best.onnx[0m
+Predict:         yolo predict task=detect model=C:\Users\ksama\OneDrive\\projects\OpenCode\ppe-compliance-monitor\models\best.onnx imgsz=640 
+Validate:        yolo val task=detect model=C:\Users\ksama\OneDrive\\projects\OpenCode\ppe-compliance-monitor\models\best.onnx imgsz=640 data=/content/data.yaml  
+Visualize:       https://netron.app
+
+exported in 4.2s -> C:\Users\ksama\OneDrive\المستندات\projects\OpenCode\ppe-compliance-monitor\models\best.onnx
+size: 10.57 MB (PyTorch: 5.47 MB)
+
+========================================================================
+3. Round-trip: reload the ONNX model and run real inference
+========================================================================
+Loading C:\Users\ksama\OneDrive\\projects\OpenCode\ppe-compliance-monitor\models\best.onnx for ONNX Runtime inference...
+Using ONNX Runtime 1.29.0 with CPUExecutionProvider
+sample image : site_01.jpg
+PyTorch      : 7 detections in 469 ms
+ONNX Runtime : 7 detections in 8160 ms
+
+========================================================================
+4. Do the two agree?
+========================================================================
+PyTorch                           ONNX
+  Person 0.884                    Person 0.880
+  Hardhat 0.878                   Hardhat 0.878
+  Person 0.791                    Person 0.782
+  NO-Hardhat 0.759                NO-Hardhat 0.756
+  NO-Mask 0.722                   NO-Mask 0.714
+  NO-Safety Vest 0.631            NO-Safety Vest 0.643
+  NO-Mask 0.256                   NO-Mask 0.264
+
+same detection count : True
+same class sequence  : True
+max confidence drift : 0.0120
+(small drift is expected — ONNX runs fp32 kernels in a different order)
+
+annotated ONNX output written to outputs\05_onnx_roundtrip.jpg
+
+========================================================================
+RESULT
+========================================================================
+ONNX export verified: the file loads, runs, and reproduces the PyTorch
+model's detections on a real construction-site image.
