@@ -1,0 +1,21 @@
+run,class,precision,recall,mAP50,mAP50-95
+A baseline,Hardhat,0.9207,0.7345,0.8026,0.5041
+A baseline,Mask,0.9409,0.8571,0.8736,0.6003
+A baseline,NO-Hardhat,0.9219,0.5131,0.6568,0.3117
+A baseline,NO-Mask,0.8829,0.5135,0.5946,0.2452
+A baseline,NO-Safety Vest,0.8759,0.5329,0.6803,0.3686
+A baseline,Person,0.8674,0.7108,0.8195,0.4624
+A baseline,Safety Cone,0.9642,0.8409,0.8799,0.4704
+A baseline,Safety Vest,0.9064,0.7084,0.8846,0.5293
+A baseline,machinery,0.8653,0.8178,0.8479,0.5204
+A baseline,vehicle,0.7177,0.4524,0.5056,0.3107
+B tuned,Hardhat,0.9665,0.7301,0.8123,0.3533
+B tuned,Mask,0.8837,0.8571,0.8503,0.4046
+B tuned,NO-Hardhat,0.8196,0.5269,0.5426,0.1913
+B tuned,NO-Mask,0.863,0.4324,0.516,0.1854
+B tuned,NO-Safety Vest,0.8612,0.5377,0.6308,0.2274
+B tuned,Person,0.7664,0.672,0.769,0.3168
+B tuned,Safety Cone,0.7682,0.7531,0.7525,0.2873
+B tuned,Safety Vest,0.7443,0.7073,0.7686,0.3292
+B tuned,machinery,0.7929,0.7455,0.8313,0.4362
+B tuned,vehicle,0.6877,0.4762,0.4911,0.2309

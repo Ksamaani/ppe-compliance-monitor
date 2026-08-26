@@ -76,25 +76,84 @@ head is a weaker record.
 
 ## Results
 
-> ⏳ **Pending the Colab run.** This section is filled from the executed notebook's captured
-> output — `run_summary.csv`, `per_class_comparison.csv` and `metrics.json` in the downloaded
-> artefacts. It is deliberately left empty rather than filled with plausible-looking numbers.
+Both runs completed on a Colab T4: Run A in 16.7 minutes, Run B in 19.3 minutes.
 
-| run | epochs | mAP50 | mAP50-95 | precision | recall |
-|---|---|---|---|---|---|
-| A baseline | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| B tuned | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| run | epochs | mAP50 | mAP50-95 | precision | recall | final val box loss |
+|---|---:|---:|---:|---:|---:|---:|
+| **A baseline** | 25 | **0.7545** | **0.4323** | **0.8863** | **0.6682** | **1.505** |
+| B tuned | 30 | 0.6964 | 0.2962 | 0.8153 | 0.6438 | 2.007 |
 
-**Per-class recall on the critical classes:** _pending_
+**The tuned run lost, on every single metric.** That is the interesting result, and it is worth
+more than a confirmation would have been.
 
-**Over/underfitting read:** _pending_
+### Per-class recall (validation split)
 
-**Selected model:** _pending_
+| class | A baseline | B tuned |
+|---|---:|---:|
+| `Hardhat` | 0.7345 | 0.7301 |
+| `Mask` | 0.8571 | 0.8571 |
+| **`NO-Hardhat`** | **0.5131** | 0.5269 |
+| **`NO-Mask`** | **0.5135** | 0.4324 |
+| **`NO-Safety Vest`** | **0.5329** | 0.5377 |
+| `Person` | 0.7108 | 0.6720 |
+| `Safety Cone` | 0.8409 | 0.7531 |
+| `Safety Vest` | 0.7084 | 0.7073 |
+| `machinery` | 0.8178 | 0.7455 |
+| `vehicle` | 0.4524 | 0.4762 |
 
-**Shipped confidence threshold:** chosen in [`EVALUATION.md`](EVALUATION.md) by sweeping on the
+The three violation classes sit around 0.51–0.53 recall while their precision is 0.88–0.92. The
+model is **cautious**: when it calls a violation it is almost always right, but it stays quiet
+about half the time. For a safety system that is exactly the wrong way round, and it is the
+reason `03_evaluation.ipynb` sweeps the confidence threshold instead of shipping the default —
+there is a large amount of recall available to buy with precision the model can spare.
+
+### Over- or underfitting?
+
+**Underfitting, both runs.** Not what the tuning was designed for.
+
+- `val/box_loss` **falls monotonically** for both runs (A: 1.87 → 1.51, B: 2.16 → 2.01). It never
+  turns upward, which is the signature of overfitting. There is none.
+- mAP is **still climbing at the final epoch** for both — A's best mAP50 is at epoch 25 of 25,
+  B's best mAP50-95 at epoch 30 of 30. Both wanted more epochs.
+- B's `patience=10` never triggered, confirming it was still improving — just from a worse
+  trajectory.
+
+### Why the tuning backfired
+
+Run B was built to fight overfitting that was not happening. Applying regularisation to an
+underfitting model just slows it down, and the details show exactly how:
+
+- **`freeze=10` was the main cost.** Freezing the backbone assumes COCO's early features already
+  suit the target domain. They partly do — but hard hats at 30 metres, hi-vis fabric under glare
+  and the fine distinction between a helmeted and a bare head are not things COCO's frozen layers
+  encode well. The backbone needed to adapt, and it was not allowed to.
+- **The mAP50-95 gap is far wider than the mAP50 gap** — 0.43 → 0.30 (−31%) against 0.75 → 0.70
+  (−8%). B finds objects nearly as often but localises them *loosely*. That is the fingerprint of
+  aggressive geometric augmentation (`degrees=10`, `scale=0.7`, `translate=0.2`) without enough
+  epochs left to re-converge on tight boxes.
+- **Five extra epochs did not compensate**, because the deficit was capacity and convergence
+  speed, not training length.
+
+### What would be tried next
+
+In priority order, given more GPU budget:
+
+1. **More epochs on the Run A recipe** — 50–75. Both curves say the cheapest gain is still there.
+2. **Unfreeze entirely, keep the mild augmentation.** Test whether `freeze` alone caused the
+   damage or the augmentation shared the blame.
+3. **A larger backbone** (`yolo11s`/`yolo11m`). Nano was chosen for CPU inference, but the
+   underfitting suggests capacity is a real constraint.
+4. **Class-weighted loss or oversampling for the `NO-*` classes**, since violation recall is what
+   the system is judged on and those classes are outnumbered by `Person` roughly four to one.
+
+**Selected model:** **Run A (baseline)**, on mAP50-95 — `models/best.pt`.
+
+**Shipped confidence threshold:** chosen in [`EVALUATION.md`](EVALUATION.md) by sweeping the
 held-out test split, not set to the library default.
 
----
+Raw artefacts for both runs — `results.csv`, `args.yaml`, confusion matrices, curves,
+`metrics.json` — are committed under [`runs_artifacts/`](../runs_artifacts). Trained weights are
+excluded as build output.
 
 ## Reproducing
 
