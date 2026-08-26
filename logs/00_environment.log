@@ -1,0 +1,18 @@
+=== ENVIRONMENT 2026-08-26T12:30:55Z ===
+
+--- host ---
+os        : Windows 11 (10.0.26200)
+cpu       : Intel Core i7-10510U @ 1.80GHz
+ram       : 15.8 GB
+gpu       : Intel UHD Graphics (integrated) - NO CUDA DEVICE
+
+--- ultralytics.checks() ---
+[2K
+[2K
+Ultralytics 8.4.129  Python-3.11.15 torch-2.13.0+cpu CPU (Intel Core i7-10510U 1.80GHz)
+Setup complete  (8 CPUs, 15.8 GB RAM, 183.1/459.0 GB disk)
+
+torch      : 2.13.0+cpu | cuda available: False
+torch device: cpu (forced - no CUDA device present)
+opencv     : 5.0.0
+python     : 3.11.15

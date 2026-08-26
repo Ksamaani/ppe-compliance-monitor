@@ -1,0 +1,43 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# --- Secrets / credentials ---
+.env
+*.key
+*.pem
+kaggle.json
+secrets.*
+
+# --- Datasets (fetched at runtime, never committed) ---
+data/datasets/
+*.zip
+*.tar.gz
+
+# --- Model weights (downloaded or trained; see README for how to obtain) ---
+*.pt
+*.onnx
+*.engine
+*.tflite
+models/*
+!models/.gitkeep
+
+# --- Ultralytics generated run directories ---
+runs/
+wandb/
+
+# --- Large GENERATED media (evidence stills and crops ARE committed; rendered video is not)
+# Source assets in data/videos/ are committed so the repo runs out of the box.
+outputs/*.mp4
+outputs/*.avi
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

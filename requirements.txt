@@ -1,0 +1,30 @@
+# PPE Compliance Monitor - local CPU stack (Python 3.11)
+# Versions pinned to what the committed notebook outputs were produced with.
+# There is no CUDA on the target machine; torch resolves to the CPU build.
+
+# --- core vision ---
+ultralytics==8.4.129
+torch==2.13.0
+torchvision==0.28.0
+opencv-python==5.0.0.93
+numpy==2.4.6
+pillow==12.3.0
+
+# --- data & plotting ---
+pandas==3.0.5
+matplotlib==3.11.1
+pyyaml==6.0.3
+
+# --- dataset access (anonymous, no API key) ---
+kagglehub==1.0.2
+
+# --- deployment ---
+streamlit==1.62.0
+onnx==1.22.0
+onnxruntime==1.29.0
+
+# --- notebooks ---
+jupyter==1.1.1
+ipykernel==7.3.0
+nbformat==5.11.1
+nbclient==0.11.0
