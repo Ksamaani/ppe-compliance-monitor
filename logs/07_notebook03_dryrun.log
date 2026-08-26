@@ -1,0 +1,24 @@
+=== NOTEBOOK 03 DRY RUN 2026-08-26T13:11:35Z ===
+
+Purpose: execute every code path in 03_evaluation.ipynb BEFORE the real weights
+exist, using the deliberately-useless model from the training smoke test
+(1 epoch, 24 images) copied to models/best.pt.
+
+The metrics below are garbage by construction - the model detects almost
+nothing. What is being verified is that no cell raises.
+
+RESULT: 15/15 code cells executed, 0 errors.
+
+Paths exercised:
+  - model.val(split='test') on 82 held-out images
+  - per-class table via box.class_result / box.ap_class_index
+  - confusion matrix + PR/F1/R curve rendering
+  - 10-point confidence sweep with per-class P/R
+  - the decision rule INCLUDING its fallback branch (no threshold met the
+    0.50 precision floor, so the 'flag it' path was taken - exactly what
+    should happen with a model this bad)
+  - NMS IoU comparison at 0.40/0.50/0.60/0.70
+  - ground-truth matching and the FN/FP error gallery (210 FN, 0 FP)
+  - operating point JSON + per-class CSV export
+
+After this run the smoke weights were deleted so the real best.pt lands clean.
