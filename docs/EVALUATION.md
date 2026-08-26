@@ -38,12 +38,14 @@ recall identically. This project maximises **recall on the violation classes** i
 But not without limit. A monitor that cries wolf constantly gets muted, and a muted monitor turns
 every future true positive into a miss as well. So the decision rule is:
 
-> **Maximise mean recall across `NO-Hardhat`, `NO-Mask` and `NO-Safety Vest`, subject to mean
-> precision across those classes staying at or above 0.50** — at least half of the alarms raised
-> must be real.
+> **Maximise mean recall across the enforced violation classes, subject to mean precision across
+> those classes staying at or above 0.50** — at least half of the alarms raised must be real.
 
 The precision floor is a judgement call, and it is the one number here that a site safety manager
 should be asked to set rather than an engineer.
+
+*Which* classes are enforced turned out to be a decision in its own right — see
+[The average was hiding a failing class](#the-average-was-hiding-a-failing-class) below.
 
 ### Why "violation" is a positive detection
 
@@ -56,42 +58,141 @@ from false positives. The dataset's paired classes are what make this analysis p
 
 ## Results
 
-> ⏳ **Pending the training run.** Filled from the executed notebook's captured output. Left
-> empty rather than populated with plausible-looking numbers.
+Model: Run A from the training stage (`models/best.pt`). Split: **test**, 82 images, 760
+instances, 210 of them violations.
 
 ### Headline (test split)
 
 | metric | value |
 |---|---|
-| mAP50 | _pending_ |
-| mAP50-95 | _pending_ |
-| precision | _pending_ |
-| recall | _pending_ |
+| mAP50 | **0.6798** |
+| mAP50-95 | **0.3771** |
+| precision | 0.8546 |
+| recall | 0.6061 |
 
 ### Per class
 
-_pending_ — see `outputs/03_per_class_metrics.csv` and `outputs/03_recall_by_class.png`.
+Full table in `outputs/03_per_class_metrics.csv`; chart in `outputs/03_recall_by_class.png`.
+The short version: common classes (`Person`, `machinery`, `Safety Cone`) do well, and the three
+violation classes — the ones this system exists for — sit lowest.
+
+### How the operating point was chosen, and one methodological correction
+
+The first version of this analysis swept `model.val(conf=X)` and read `box.mp` / `box.mr` back.
+**That is the wrong instrument**, and the output said so plainly: precision and recall came back
+*identical* for conf 0.05 / 0.10 / 0.15, and the "winner" was chosen on a 0.0005 difference that
+was pure noise.
+
+The reason is that Ultralytics reports precision and recall at the **maximum-F1 point of the PR
+curve**, not at the confidence threshold passed in. `conf=X` merely discards detections below X
+before the curve is built. So sweeping it answers *"what is the best achievable F1 if I throw away
+everything under X?"* — not *"what will I get if I deploy at X?"*. Only the second is a
+deployment question.
+
+The published sweep therefore measures deployed behaviour directly: predict once at a score floor
+of 0.01, then apply each candidate threshold in memory and **match predictions to ground truth by
+IoU ≥ 0.50**, counting TP / FP / FN by hand. Confidence and NMS IoU are swept jointly, since NMS
+decides which boxes survive and confidence then decides which survivors raise an alarm.
+
+With that fixed, the curve behaves as it must — monotonic in both directions (`nms_iou = 0.50`):
+
+| conf | precision | recall | TP | FP | FN |
+|---:|---:|---:|---:|---:|---:|
+| 0.05 | 0.5045 | 0.6713 | 144 | 156 | 66 |
+| 0.10 | 0.6150 | 0.6544 | 140 | 90 | 70 |
+| 0.15 | 0.6742 | 0.6428 | 137 | 66 | 73 |
+| 0.25 | 0.7502 | 0.5990 | 126 | 39 | 84 |
+| 0.40 | 0.8597 | 0.5389 | 113 | 15 | 97 |
+| 0.60 | 0.9270 | 0.4190 | 88 | 5 | 122 |
+| 0.70 | 0.9074 | 0.3263 | 69 | 5 | 141 |
+
+### The average was hiding a failing class
+
+At `conf=0.05` the mean precision across the three violation classes is 0.5045 — it clears the
+0.50 floor. Per class, it does not:
+
+| class | precision | true alarms | false alarms | verdict |
+|---|---:|---:|---:|---|
+| `NO-Hardhat` | 0.5208 | 25 | 23 | above the floor |
+| **`NO-Mask`** | **0.3581** | 53 | **95** | **far below** |
+| `NO-Safety Vest` | 0.6346 | 66 | 38 | above the floor |
+
+`NO-Mask` was being carried by the other two. And there is a domain reason behind the number:
+**the dataset treats "no mask" as a PPE violation, but an open-air formwork deck does not require
+masks.** Respiratory protection is a demolition, grinding or silica-dust rule, not a general site
+rule. Enforcing it everywhere generates alarms that are correct against the labels and wrong
+against site policy — the fastest way to get a safety system switched off.
+
+So whether `NO-Mask` is enforced is a **site policy decision, not a model property**. It lives in
+`ppe_monitor.config.ENFORCED_CLASSES`, and a site that does require masks re-enables it there
+with no other change.
 
 ### Selected operating point
 
+Enforcing `NO-Hardhat` and `NO-Safety Vest`:
+
+| conf | precision | recall |
+|---:|---:|---:|
+| 0.05 | 0.5777 | 0.6716 |
+| **0.10** | **0.6799** | **0.6716** |
+| 0.15 | 0.7290 | 0.6604 |
+| 0.25 (default) | 0.7810 | 0.6327 |
+
 | | value |
 |---|---|
-| confidence | _pending_ |
-| NMS IoU | _pending_ |
-| violation-class recall | _pending_ |
-| violation-class precision | _pending_ |
-| vs. the `conf=0.25` default | _pending_ |
+| **confidence** | **0.10** |
+| **NMS IoU** | **0.50** |
+| **enforced classes** | `NO-Hardhat`, `NO-Safety Vest` |
+| violation recall | **0.6715** |
+| violation precision | **0.6799** |
 
-Machine-readable copy: `outputs/03_operating_point.json`. `ppe_monitor/config.py` is set to
-match, so the Streamlit app, the violation ledger and notebook 02 all run at the threshold
-justified here rather than at a library default.
+Two things are happening there, and they are worth separating:
+
+1. **A free improvement.** Recall is *identical* at conf 0.05 and 0.10, but precision is 10 points
+   better at 0.10. Same violations caught, fewer false alarms — take it. That plateau is invisible
+   to a `val(conf=...)` sweep, which is the practical payoff of fixing the methodology.
+2. **A priced trade.** Against the default `conf=0.25`, the shipped point buys **+3.9 points of
+   recall for −10.1 points of precision**. That is not a free win and is not presented as one.
+   Under the stated rule it is still the right call: precision clears the 0.50 floor with room to
+   spare, and the recall gained is violations that would otherwise be missed entirely. A site that
+   cannot absorb the extra false alarms raises the floor and lands at conf 0.15 or 0.20 — the
+   table prices that choice instead of leaving it inherited from a library default.
+
+Machine-readable copy: `outputs/03_operating_point.json`. `ppe_monitor/config.py` is set to match,
+so the Streamlit app, the violation ledger and notebook 02 all run at the threshold justified
+here.
 
 ### Failure analysis
 
-_pending_ — the notebook renders the actual images behind every false negative and false positive
-on the violation classes.
+Two different points get counted here, and conflating them would overstate the cost of what is
+actually shipped.
 
----
+**The candidate point** — conf 0.05, all three labelled violation classes — produces **66 false
+negatives and 156 false positives** against 210 ground-truth instances:
+
+| class | TP | FP | FN |
+|---|---:|---:|---:|
+| `NO-Hardhat` | 25 | 23 | 16 |
+| `NO-Mask` | 53 | 95 | 26 |
+| `NO-Safety Vest` | 66 | 38 | 24 |
+
+**The shipped point** — conf 0.10, enforcing `NO-Hardhat` and `NO-Safety Vest` — is a different
+threshold over a different class set, so its errors are recounted rather than inherited:
+
+| class | TP | FP | FN |
+|---|---:|---:|---:|
+| `NO-Hardhat` | 25 | 16 | 16 |
+| `NO-Safety Vest` | 66 | 22 | 24 |
+| **total** | **91** | **38** | **40** |
+
+131 ground-truth instances, **40 missed violations and 38 false alarms**. Dropping `NO-Mask` and
+raising the threshold removes 118 of the 156 false alarms — and costs no true positives at all,
+because the same 91 detections survive both moves. The alarms removed were correct against the
+dataset's labels and wrong against site policy, which is the distinction that decides whether a
+safety system stays switched on.
+
+The error gallery in the notebook is rendered at the candidate point deliberately: the lower
+threshold surfaces more of the failure modes, and the causes below are what those images show.
 
 ## Two IoU thresholds, easily confused
 

@@ -22,9 +22,9 @@ import numpy as np
 
 from .config import (
     CLOSE_AFTER_FRAMES,
+    ENFORCED_CLASSES,
     OPEN_AFTER_FRAMES,
     SEVERITY,
-    VIOLATION_CLASSES,
 )
 
 
@@ -78,7 +78,7 @@ class ViolationLedger:
         open_after: int = OPEN_AFTER_FRAMES,
         close_after: int = CLOSE_AFTER_FRAMES,
         min_conf: float = 0.0,
-        violation_classes: frozenset[str] = VIOLATION_CLASSES,
+        violation_classes: frozenset[str] = ENFORCED_CLASSES,
     ) -> None:
         self.crop_dir = crop_dir
         self.open_after = open_after

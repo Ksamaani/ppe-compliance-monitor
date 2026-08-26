@@ -28,11 +28,11 @@ from ppe_monitor.config import (
     CLOSE_AFTER_FRAMES,
     DEFAULT_CONF,
     DEFAULT_IOU,
+    ENFORCED_CLASSES,
     FALLBACK_WEIGHTS,
     MODEL_DIR,
     OPEN_AFTER_FRAMES,
     SEVERITY,
-    VIOLATION_CLASSES,
 )
 
 ROOT = Path(__file__).resolve().parent
@@ -71,7 +71,7 @@ def detections_frame(result) -> pd.DataFrame:
         rows.append(
             {
                 "class": label,
-                "violation": label in VIOLATION_CLASSES,
+                "violation": label in ENFORCED_CLASSES,
                 "severity": SEVERITY.get(label, 0),
                 "confidence": round(float(box.conf), 3),
                 "x1": int(box.xyxy[0][0]),

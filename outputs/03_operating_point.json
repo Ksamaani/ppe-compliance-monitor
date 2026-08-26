@@ -1,0 +1,78 @@
+{
+  "weights": "best.pt",
+  "evaluated_on": "test split (held out from training and early stopping)",
+  "test_images": 82,
+  "conf": 0.1,
+  "nms_iou": 0.5,
+  "matching_iou": 0.5,
+  "enforced_classes": [
+    "NO-Hardhat",
+    "NO-Safety Vest"
+  ],
+  "enforced_classes_rationale": "NO-Mask is labelled in the dataset but not enforced: an open-air formwork deck does not require respiratory protection, and the class also sits well below the precision floor (0.358). Site policy, not a model property.",
+  "site_policy_metrics": {
+    "recall": 0.6715,
+    "precision": 0.6799
+  },
+  "selection_rule": "maximise mean recall over ['NO-Hardhat', 'NO-Safety Vest'] subject to mean precision >= 0.5, measured by direct IoU matching against ground truth (not via val(conf=...)); highest threshold taken on the recall plateau",
+  "all_three_classes_at_this_point": {
+    "conf": 0.05,
+    "recall": 0.6713,
+    "precision": 0.5045
+  },
+  "headline": {
+    "mAP50": 0.6798,
+    "mAP50_95": 0.3771,
+    "precision": 0.8546,
+    "recall": 0.6061
+  },
+  "violation_classes": {
+    "recall": 0.6713,
+    "precision": 0.5045,
+    "per_class": {
+      "NO-Hardhat": {
+        "tp": 25,
+        "fp": 23,
+        "fn": 16
+      },
+      "NO-Mask": {
+        "tp": 53,
+        "fp": 95,
+        "fn": 26
+      },
+      "NO-Safety Vest": {
+        "tp": 66,
+        "fp": 38,
+        "fn": 24
+      }
+    }
+  },
+  "errors_at_shipped_point": {
+    "conf": 0.1,
+    "enforced_classes": [
+      "NO-Hardhat",
+      "NO-Safety Vest"
+    ],
+    "false_negatives": 40,
+    "false_positives": 38,
+    "ground_truth_instances": 131,
+    "per_class": {
+      "NO-Hardhat": {
+        "tp": 25,
+        "fp": 16,
+        "fn": 16
+      },
+      "NO-Safety Vest": {
+        "tp": 66,
+        "fp": 22,
+        "fn": 24
+      }
+    }
+  },
+  "errors_at_all_three_class_candidate": {
+    "conf": 0.05,
+    "false_negatives": 66,
+    "false_positives": 156,
+    "ground_truth_instances": 210
+  }
+}
